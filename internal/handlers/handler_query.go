@@ -9,6 +9,8 @@ import (
 
 	"github.com/clems4ever/go-graphkb/internal/history"
 	"github.com/clems4ever/go-graphkb/internal/knowledge"
+
+	"github.com/spf13/viper"
 )
 
 // PostQuery post endpoint to query the graph
@@ -56,8 +58,13 @@ func PostQuery(database knowledge.GraphDB, queryHistorizer history.Historizer) h
 			return
 		}
 
+		query_timeout := viper.GetDuration("query_timeout")
+		if query_timeout != 0 {
+			query_timeout = 30
+		}
+
 		querier := knowledge.NewQuerier(database, queryHistorizer)
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), query_timeout*time.Second)
 		defer cancel()
 
 		res, err := querier.Query(ctx, requestBody.Query)
